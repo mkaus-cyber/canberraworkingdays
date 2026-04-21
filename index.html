@@ -1,0 +1,531 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  .wd-root {
+    --bg:#f5f0e8;--card:#fff;--ink:#1a1a1a;--muted:#999;--rule:#e0d8cc;
+    --acc:#c0392b;--acc2:#e74c3c;--gold:#b8860b;
+    --weekend-bg:#fdf8f0;--weekend-fg:#bbb;
+    --sel-bg:#c0392b;--sel-fg:#fff;--today-ring:#c0392b;--holiday-fg:#b8860b;
+    --hover-bg:#f0ebe0;--overlay:rgba(26,20,10,0.55);--popup-bg:#fefcf8;
+    --shadow:0 24px 60px rgba(0,0,0,0.18),0 4px 12px rgba(0,0,0,0.08);--r:14px;
+    font-family:'JetBrains Mono',monospace;
+    background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+    background-image:radial-gradient(circle at 20% 20%,rgba(192,57,43,0.06) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(184,134,11,0.06) 0%,transparent 50%);
+  }
+  .wd-app{width:100%;max-width:500px;}
+  .wd-header{text-align:center;margin-bottom:32px;}
+  .wd-eyebrow{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:10px;}
+  .wd-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:400;color:var(--ink);line-height:1.15;margin-bottom:8px;}
+  .wd-title em{color:var(--acc);font-style:italic;}
+  .wd-sub{font-size:12px;color:var(--muted);line-height:1.6;}
+
+  .wd-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .wd-card{background:var(--card);border:1.5px solid var(--rule);border-radius:var(--r);padding:18px 18px 14px;cursor:pointer;transition:border-color .18s,box-shadow .18s;position:relative;overflow:hidden;}
+  .wd-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc);transform:scaleX(0);transform-origin:left;transition:transform .2s;}
+  .wd-card:hover{border-color:#ccc;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+  .wd-card:hover::before,.wd-card.active::before{transform:scaleX(1);}
+  .wd-card.active{border-color:var(--acc);}
+  .wd-card-lbl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .wd-card-icon{margin-bottom:8px;}
+  .wd-card-icon svg{display:block;}
+  .wd-card-val{font-family:'Playfair Display',serif;font-size:18px;color:var(--ink);min-height:26px;line-height:1.3;}
+  .wd-card-val.empty{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
+  .wd-card-hint{margin-top:10px;font-size:10px;color:var(--acc);letter-spacing:.08em;}
+
+  .wd-hol-bar{background:var(--card);border:1.5px solid var(--rule);border-radius:var(--r);padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .wd-hol-bar-left{font-size:11px;color:var(--muted);}
+  .wd-hol-bar-left strong{color:var(--gold);font-weight:500;}
+  .wd-hol-edit-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);background:none;border:1px solid var(--acc);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s;}
+  .wd-hol-edit-btn:hover{background:var(--acc);color:#fff;}
+
+  .wd-error{background:#fff0ef;border:1px solid #f5c0bc;border-radius:8px;padding:10px 14px;font-size:12px;color:#b03020;margin-bottom:12px;display:none;}
+  .wd-error.show{display:block;}
+  .wd-btn{width:100%;padding:15px;background:var(--ink);color:#fff;border:none;border-radius:var(--r);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:background .18s;margin-bottom:14px;}
+  .wd-btn:hover{background:#333;}
+
+  .wd-result{background:var(--card);border:1.5px solid var(--rule);border-radius:var(--r);padding:24px;display:none;animation:fadeUp .3s ease;}
+  .wd-result.show{display:block;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .wd-result-num{font-family:'Playfair Display',serif;font-size:72px;color:var(--acc);line-height:1;margin-bottom:2px;}
+  .wd-result-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+  .wd-result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;border-top:1px solid var(--rule);padding-top:16px;margin-bottom:16px;}
+  .wd-detail-k{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+  .wd-detail-v{font-size:12px;color:var(--ink);}
+  .wd-hols{border-top:1px solid var(--rule);padding-top:14px;font-size:11px;color:var(--muted);}
+  .wd-hols-title{color:var(--gold);margin-bottom:8px;}
+  .wd-hols-pills{display:flex;flex-wrap:wrap;gap:6px;}
+  .wd-hol-pill{background:#fffbf0;border:1px solid #e8d898;border-radius:20px;padding:3px 10px;font-size:11px;color:var(--gold);}
+
+  .wd-footer{text-align:center;margin-top:22px;font-size:10px;color:var(--muted);letter-spacing:.06em;}
+
+  /* ── Overlays ── */
+  .wd-overlay{position:fixed;inset:0;background:var(--overlay);backdrop-filter:blur(3px);z-index:999;display:none;align-items:center;justify-content:center;padding:16px;}
+  .wd-overlay.open{display:flex;}
+
+  /* Calendar */
+  .wd-cal{background:var(--popup-bg);border-radius:18px;box-shadow:var(--shadow);padding:26px;width:100%;max-width:320px;animation:popIn .2s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes popIn{from{opacity:0;transform:scale(.88);}to{opacity:1;transform:scale(1);}}
+  .cal-top{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);margin-bottom:14px;}
+  .cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .cal-nav{width:34px;height:34px;background:var(--bg);border:1px solid var(--rule);border-radius:8px;color:var(--ink);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s;}
+  .cal-nav:hover{background:#ede8df;}
+  .cal-month-label{font-family:'Playfair Display',serif;font-size:20px;color:var(--ink);}
+  .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;}
+  .cal-dow span{text-align:center;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:4px 0;}
+  .cal-dow span:nth-child(6),.cal-dow span:nth-child(7){color:var(--acc);opacity:.7;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+  .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:13px;cursor:pointer;transition:background .1s,color .1s;user-select:none;position:relative;}
+  .cal-day.blank{pointer-events:none;}
+  .cal-day.wknd{background:var(--weekend-bg);color:var(--weekend-fg);}
+  .cal-day.today{box-shadow:inset 0 0 0 1.5px var(--today-ring);color:var(--acc);font-weight:500;}
+  .cal-day.sel{background:var(--sel-bg);color:var(--sel-fg);font-weight:500;}
+  .cal-day.hol{color:var(--holiday-fg);}
+  .cal-day.hol.sel{color:var(--sel-fg);}
+  .cal-day:not(.blank):not(.sel):hover{background:var(--hover-bg);}
+  .cal-day.hol::after{content:'·';position:absolute;bottom:2px;font-size:10px;color:var(--gold);line-height:1;}
+  .cal-day.sel::after{color:rgba(255,255,255,.7);}
+  .cal-confirm{margin-top:18px;width:100%;padding:13px;background:var(--acc);color:#fff;border:none;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:background .15s;}
+  .cal-confirm:hover{background:var(--acc2);}
+  .cal-cancel{display:block;width:100%;margin-top:8px;background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;padding:6px;transition:color .12s;}
+  .cal-cancel:hover{color:var(--ink);}
+
+  /* Holiday editor */
+  .hol-editor{background:var(--popup-bg);border-radius:18px;box-shadow:var(--shadow);padding:26px;width:100%;max-width:420px;max-height:85vh;display:flex;flex-direction:column;animation:popIn .2s cubic-bezier(.34,1.56,.64,1);}
+  .hol-ed-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px;}
+  .hol-ed-sub{font-size:11px;color:var(--muted);margin-bottom:18px;}
+  .hol-ed-year-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+  .hol-ed-year-nav{width:28px;height:28px;background:var(--bg);border:1px solid var(--rule);border-radius:6px;color:var(--ink);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s;flex-shrink:0;}
+  .hol-ed-year-nav:hover{background:#ede8df;}
+  .hol-ed-year-lbl{font-size:13px;font-weight:500;color:var(--ink);min-width:36px;text-align:center;}
+  .hol-ed-list{overflow-y:auto;flex:1;margin-bottom:16px;}
+  .hol-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule);}
+  .hol-row:last-child{border-bottom:none;}
+  .hol-cb{width:16px;height:16px;accent-color:var(--acc);cursor:pointer;flex-shrink:0;}
+  .hol-row-info{flex:1;}
+  .hol-row-name{font-size:12px;color:var(--ink);}
+  .hol-row-date{font-size:10px;color:var(--muted);margin-top:2px;}
+  .hol-row-custom{font-size:10px;color:var(--acc);margin-top:2px;}
+  .hol-row-del{background:none;border:none;color:#ccc;font-size:14px;cursor:pointer;padding:2px 4px;transition:color .12s;flex-shrink:0;}
+  .hol-row-del:hover{color:var(--acc);}
+
+  .hol-add-row{display:flex;gap:8px;margin-top:4px;padding-top:14px;border-top:1px solid var(--rule);}
+  .hol-add-input{flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--rule);border-radius:6px;padding:7px 10px;background:var(--bg);color:var(--ink);outline:none;}
+  .hol-add-input:focus{border-color:var(--acc);}
+  .hol-add-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;background:var(--acc);color:#fff;border:none;border-radius:6px;padding:7px 12px;cursor:pointer;white-space:nowrap;transition:background .15s;}
+  .hol-add-btn:hover{background:var(--acc2);}
+  .hol-add-err{font-size:10px;color:var(--acc);margin-top:6px;}
+
+  .hol-ed-footer{display:flex;gap:8px;margin-top:16px;}
+  .hol-ed-save{flex:1;padding:12px;background:var(--ink);color:#fff;border:none;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .15s;}
+  .hol-ed-save:hover{background:#333;}
+  .hol-ed-reset{padding:12px 14px;background:none;border:1px solid var(--rule);border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s;}
+  .hol-ed-reset:hover{border-color:#aaa;color:var(--ink);}
+</style>
+
+<div class="wd-root">
+<div class="wd-app">
+  <div class="wd-header">
+    <div class="wd-eyebrow">&#9632; Leave Planner · ACT</div>
+    <h1 class="wd-title">Working Days<br><em>Calculator</em></h1>
+    <p class="wd-sub">Select your departure and return dates.<br>Weekends &amp; public holidays excluded automatically.</p>
+  </div>
+
+  <div class="wd-cards">
+    <div class="wd-card" id="card-start" onclick="openCal('start')">
+      <div class="wd-card-lbl">Departure</div>
+      <div class="wd-card-icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 14l3-1 3 4 8-11-13 5z"/><path d="M8 17l1 3"/><path d="M5 13l-2 3"/>
+        </svg>
+      </div>
+      <div class="wd-card-val empty" id="disp-start">Pick a date</div>
+      <div class="wd-card-hint">&#9654; Select</div>
+    </div>
+    <div class="wd-card" id="card-return" onclick="openCal('return')">
+      <div class="wd-card-lbl">Return</div>
+      <div class="wd-card-icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 10l8-7 8 7"/><path d="M5 8v10h4v-5h4v5h4V8"/>
+        </svg>
+      </div>
+      <div class="wd-card-val empty" id="disp-return">Pick a date</div>
+      <div class="wd-card-hint">&#9654; Select</div>
+    </div>
+  </div>
+
+  <div class="wd-hol-bar">
+    <div class="wd-hol-bar-left">Public holidays: <strong id="hol-count-lbl">loading…</strong></div>
+    <button class="wd-hol-edit-btn" onclick="openHolEditor()">Review &amp; Edit</button>
+  </div>
+
+  <div class="wd-error" id="wd-error"></div>
+  <button class="wd-btn" onclick="calculate()">Calculate Working Days</button>
+
+  <div class="wd-result" id="wd-result">
+    <div class="wd-result-num" id="r-num">0</div>
+    <div class="wd-result-lbl">working days away from office</div>
+    <div class="wd-result-grid">
+      <div><div class="wd-detail-k">Departs</div><div class="wd-detail-v" id="r-start">—</div></div>
+      <div><div class="wd-detail-k">Returns</div><div class="wd-detail-v" id="r-end">—</div></div>
+      <div><div class="wd-detail-k">Period</div><div class="wd-detail-v" id="r-period">—</div></div>
+    </div>
+    <div class="wd-hols" id="wd-hols"></div>
+  </div>
+
+  <div class="wd-footer">Weekends &amp; ACT public holidays excluded</div>
+</div>
+
+<!-- Calendar overlay -->
+<div class="wd-overlay" id="overlay-cal" onclick="bgClickCal(event)">
+  <div class="wd-cal">
+    <div class="cal-top" id="cal-kind-lbl">Select date</div>
+    <div class="cal-hdr">
+      <button class="cal-nav" onclick="calNav(-1)">&#8249;</button>
+      <div class="cal-month-label" id="cal-month-lbl"></div>
+      <button class="cal-nav" onclick="calNav(1)">&#8250;</button>
+    </div>
+    <div class="cal-dow"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <button class="cal-confirm" onclick="confirmPick()">Confirm</button>
+    <button class="cal-cancel" onclick="closeCal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Holiday editor overlay -->
+<div class="wd-overlay" id="overlay-hol" onclick="bgClickHol(event)">
+  <div class="hol-editor">
+    <div class="hol-ed-title">Public Holidays</div>
+    <div class="hol-ed-sub">Uncheck to exclude a holiday · Add custom dates below</div>
+    <div class="hol-ed-year-row">
+      <button class="hol-ed-year-nav" onclick="edNav(-1)">&#8249;</button>
+      <div class="hol-ed-year-lbl" id="ed-year-lbl">2025</div>
+      <button class="hol-ed-year-nav" onclick="edNav(1)">&#8250;</button>
+      <span style="font-size:10px;color:var(--muted);margin-left:4px;">showing year</span>
+    </div>
+    <div class="hol-ed-list" id="hol-ed-list"></div>
+    <div>
+      <div class="hol-add-row">
+        <input class="hol-add-input" id="hol-add-date" type="date" placeholder="YYYY-MM-DD">
+        <input class="hol-add-input" id="hol-add-name" type="text" placeholder="Holiday name" style="flex:2">
+        <button class="hol-add-btn" onclick="addCustomHol()">Add</button>
+      </div>
+      <div class="hol-add-err" id="hol-add-err"></div>
+    </div>
+    <div class="hol-ed-footer">
+      <button class="hol-ed-reset" onclick="resetHols()">Reset to defaults</button>
+      <button class="hol-ed-save" onclick="saveHols()">Save &amp; Close</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // ── ACT Holiday engine ───────────────────────────────────────────────────
+  function easterSunday(y){
+    const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,
+          f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),
+          h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,
+          l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+          mo=Math.floor((h+l-7*m+114)/31),da=(h+l-7*m+114)%31+1;
+    return new Date(y,mo-1,da);
+  }
+  function nthWeekday(y,mo,wd,n){
+    const d=new Date(y,mo-1,1);let cnt=0;
+    while(true){if(d.getDay()===wd&&++cnt===n)return new Date(d);d.setDate(d.getDate()+1);}
+  }
+  function subst(y,mo,da){
+    const d=new Date(y,mo-1,da),dow=d.getDay();
+    if(dow===6)return fmt(new Date(y,mo-1,da+2));
+    if(dow===0)return fmt(new Date(y,mo-1,da+1));
+    return fmt(d);
+  }
+  function fmt(d){return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+  function p(n){return String(n).padStart(2,'0');}
+
+  function buildACTHols(y){
+    // Returns array of {iso, name, custom:false}
+    const list=[];
+    const add=(iso,name)=>list.push({iso,name,custom:false});
+    add(subst(y,1,1),'New Year\'s Day');
+    add(subst(y,1,26),'Australia Day');
+    // Canberra Day – 2nd Mon March (ACT only)
+    add(fmt(nthWeekday(y,3,1,2)),'Canberra Day');
+    const es=easterSunday(y);
+    const off=(n)=>{const d=new Date(es);d.setDate(d.getDate()+n);return fmt(d);};
+    add(off(-2),'Good Friday');
+    add(off(-1),'Easter Saturday');
+    add(off(0),'Easter Sunday');
+    add(off(1),'Easter Monday');
+    add(subst(y,4,25),'Anzac Day');
+    // Reconciliation Day – 1st Mon on/after 27 May (ACT)
+    const recDay=(()=>{
+      const d=new Date(y,4,27);
+      while(d.getDay()!==1)d.setDate(d.getDate()+1);
+      return fmt(d);
+    })();
+    add(recDay,'Reconciliation Day');
+    // King's Birthday – 2nd Mon June
+    add(fmt(nthWeekday(y,6,1,2)),"King's Birthday");
+    // Family & Community Day / AFL Grand Final (ACT) – Friday before or on last Sat Sept
+    // ACT observes AFL Grand Final Friday (varies; approximate as last Fri Sept)
+    const aflFri=(()=>{
+      const d=new Date(y,8,30);
+      while(d.getDay()!==5)d.setDate(d.getDate()-1);
+      return fmt(d);
+    })();
+    add(aflFri,'AFL Grand Final Eve');
+    // Labour Day – 1st Mon Oct
+    add(fmt(nthWeekday(y,10,1,1)),'Labour Day');
+    add(subst(y,12,25),'Christmas Day');
+    add(subst(y,12,26),'Boxing Day');
+    return list;
+  }
+
+  // ── User-editable holiday state ──────────────────────────────────────────
+  // customHols: { [year]: { [iso]: {name, enabled, custom} } }
+  let customHols={};
+
+  function getHolsForYear(y){
+    if(!customHols[y]){
+      const defaults=buildACTHols(y);
+      customHols[y]={};
+      defaults.forEach(({iso,name})=>{
+        customHols[y][iso]={name,enabled:true,custom:false};
+      });
+    }
+    return customHols[y];
+  }
+
+  function activeHolSet(y){
+    const h=getHolsForYear(y);
+    return new Set(Object.entries(h).filter(([,v])=>v.enabled).map(([iso])=>iso));
+  }
+
+  function updateHolCountLabel(){
+    const y=new Date().getFullYear();
+    const h=getHolsForYear(y);
+    const total=Object.keys(h).length;
+    const enabled=Object.values(h).filter(v=>v.enabled).length;
+    document.getElementById('hol-count-lbl').textContent=
+      `${enabled} active for ${y}${enabled<total?' ('+( total-enabled)+' disabled)':''}`;
+  }
+
+  // ── Date helpers ─────────────────────────────────────────────────────────
+  function isHol(d){return activeHolSet(d.getFullYear()).has(fmt(d));}
+  function isWknd(d){return d.getDay()===0||d.getDay()===6;}
+  function disp(d,short){return d.toLocaleDateString('en-AU',short?{day:'numeric',month:'short'}:{day:'numeric',month:'short',year:'numeric'});}
+
+  function countDays(s,e){
+    if(e<s)return 0;
+    const holCache={};
+    let n=0;const c=new Date(s);
+    while(c<=e){
+      const y=c.getFullYear();
+      if(!holCache[y])holCache[y]=activeHolSet(y);
+      if(!isWknd(c)&&!holCache[y].has(fmt(c)))n++;
+      c.setDate(c.getDate()+1);
+    }
+    return n;
+  }
+  function holsInRange(s,e){
+    const out=[];const c=new Date(s);
+    const holCache={};
+    while(c<=e){
+      const y=c.getFullYear();
+      if(!holCache[y])holCache[y]=activeHolSet(y);
+      if(holCache[y].has(fmt(c)))out.push({date:new Date(c),name:customHols[y]?.[fmt(c)]?.name||''});
+      c.setDate(c.getDate()+1);
+    }
+    return out;
+  }
+
+  // ── Calendar picker ──────────────────────────────────────────────────────
+  let startDate=null,returnDate=null,calKind='start',calView=new Date(),calSel=null;
+
+  function renderCal(){
+    const y=calView.getFullYear(),m=calView.getMonth();
+    document.getElementById('cal-month-lbl').textContent=`${MONTHS[m]}  ${y}`;
+    const grid=document.getElementById('cal-grid');grid.innerHTML='';
+    const today=new Date();today.setHours(0,0,0,0);
+    const first=new Date(y,m,1),last=new Date(y,m+1,0);
+    const pad=(first.getDay()+6)%7;
+    for(let i=0;i<pad;i++){const b=document.createElement('div');b.className='cal-day blank';grid.appendChild(b);}
+    const holSet=activeHolSet(y);
+    for(let d=1;d<=last.getDate();d++){
+      const dt=new Date(y,m,d);const iso=fmt(dt);
+      const el=document.createElement('div');el.className='cal-day';el.textContent=d;
+      const sel=calSel&&iso===fmt(calSel);
+      if(sel)el.classList.add('sel');
+      else if(dt.getTime()===today.getTime())el.classList.add('today');
+      else if(isWknd(dt))el.classList.add('wknd');
+      if(holSet.has(iso))el.classList.add('hol');
+      el.onclick=()=>{calSel=new Date(dt);renderCal();};
+      grid.appendChild(el);
+    }
+  }
+
+  window.calNav=function(dir){calView=new Date(calView.getFullYear(),calView.getMonth()+dir,1);renderCal();};
+  window.openCal=function(kind){
+    calKind=kind;
+    const ex=kind==='start'?startDate:returnDate;
+    calSel=ex?new Date(ex):new Date();
+    calView=new Date(calSel.getFullYear(),calSel.getMonth(),1);
+    document.getElementById('cal-kind-lbl').textContent=kind==='start'?'Select Departure Date':'Select Return Date';
+    document.getElementById('overlay-cal').classList.add('open');
+    renderCal();
+  };
+  window.closeCal=function(){document.getElementById('overlay-cal').classList.remove('open');};
+  window.bgClickCal=function(e){if(e.target===document.getElementById('overlay-cal'))closeCal();};
+  window.confirmPick=function(){
+    if(!calSel){closeCal();return;}
+    if(calKind==='start'){
+      startDate=new Date(calSel);
+      const el=document.getElementById('disp-start');
+      el.textContent=disp(startDate);el.classList.remove('empty');
+      document.getElementById('card-start').classList.add('active');
+    }else{
+      returnDate=new Date(calSel);
+      const el=document.getElementById('disp-return');
+      el.textContent=disp(returnDate);el.classList.remove('empty');
+      document.getElementById('card-return').classList.add('active');
+    }
+    closeCal();
+    document.getElementById('wd-result').classList.remove('show');
+    document.getElementById('wd-error').classList.remove('show');
+  };
+
+  // ── Holiday editor ───────────────────────────────────────────────────────
+  let edYear=new Date().getFullYear();
+  // scratch copy while editor is open
+  let edScratch={};
+
+  function cloneHols(y){
+    const h=getHolsForYear(y);
+    edScratch[y]={};
+    Object.entries(h).forEach(([iso,v])=>{edScratch[y][iso]={...v};});
+  }
+
+  function renderEditor(){
+    const h=edScratch[edYear]||{};
+    document.getElementById('ed-year-lbl').textContent=edYear;
+    const list=document.getElementById('hol-ed-list');list.innerHTML='';
+    const sorted=Object.entries(h).sort(([a],[b])=>a.localeCompare(b));
+    if(sorted.length===0){
+      list.innerHTML='<div style="font-size:12px;color:var(--muted);padding:12px 0">No holidays for this year. Add one below.</div>';
+      return;
+    }
+    sorted.forEach(([iso,v])=>{
+      const d=new Date(iso+'T00:00:00');
+      const row=document.createElement('div');row.className='hol-row';
+      row.innerHTML=`
+        <input type="checkbox" class="hol-cb" ${v.enabled?'checked':''} onchange="toggleHol('${iso}',this.checked)">
+        <div class="hol-row-info">
+          <div class="hol-row-name" style="color:${v.enabled?'var(--ink)':'var(--muted)'}">${v.name}</div>
+          <div class="hol-row-date">${d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'long',year:'numeric'})}</div>
+          ${v.custom?'<div class="hol-row-custom">Custom</div>':''}
+        </div>
+        ${v.custom?`<button class="hol-row-del" onclick="deleteHol('${iso}')" title="Remove">&#10005;</button>`:''}
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  window.toggleHol=function(iso,checked){
+    if(edScratch[edYear]&&edScratch[edYear][iso])
+      edScratch[edYear][iso].enabled=checked;
+    renderEditor();
+  };
+  window.deleteHol=function(iso){
+    if(edScratch[edYear])delete edScratch[edYear][iso];
+    renderEditor();
+  };
+
+  window.edNav=function(dir){
+    edYear+=dir;
+    if(!edScratch[edYear]){cloneHols(edYear);}
+    renderEditor();
+  };
+
+  window.addCustomHol=function(){
+    const dateVal=document.getElementById('hol-add-date').value;
+    const nameVal=document.getElementById('hol-add-name').value.trim();
+    const errEl=document.getElementById('hol-add-err');
+    if(!dateVal){errEl.textContent='Please enter a date.';return;}
+    if(!nameVal){errEl.textContent='Please enter a name.';return;}
+    const d=new Date(dateVal+'T00:00:00');
+    if(isNaN(d)){errEl.textContent='Invalid date.';return;}
+    const y=d.getFullYear();
+    errEl.textContent='';
+    if(!edScratch[y]){cloneHols(y);}
+    edScratch[y][dateVal]={name:nameVal,enabled:true,custom:true};
+    // jump to that year
+    edYear=y;
+    document.getElementById('hol-add-date').value='';
+    document.getElementById('hol-add-name').value='';
+    renderEditor();
+  };
+
+  window.resetHols=function(){
+    // rebuild defaults for edYear
+    const defaults=buildACTHols(edYear);
+    edScratch[edYear]={};
+    defaults.forEach(({iso,name})=>{edScratch[edYear][iso]={name,enabled:true,custom:false};});
+    renderEditor();
+  };
+
+  window.saveHols=function(){
+    // merge scratch back
+    Object.entries(edScratch).forEach(([y,data])=>{customHols[y]=data;});
+    edScratch={};
+    updateHolCountLabel();
+    document.getElementById('overlay-hol').classList.remove('open');
+    document.getElementById('wd-result').classList.remove('show');
+  };
+
+  window.openHolEditor=function(){
+    edYear=new Date().getFullYear();
+    edScratch={};
+    // clone current years (at minimum current year)
+    const years=new Set([edYear]);
+    if(startDate)years.add(startDate.getFullYear());
+    if(returnDate)years.add(returnDate.getFullYear());
+    years.forEach(y=>cloneHols(y));
+    renderEditor();
+    document.getElementById('overlay-hol').classList.add('open');
+  };
+  window.bgClickHol=function(e){if(e.target===document.getElementById('overlay-hol'))saveHols();};
+
+  // ── Calculate ────────────────────────────────────────────────────────────
+  window.calculate=function(){
+    const errEl=document.getElementById('wd-error');
+    if(!startDate||!returnDate){errEl.textContent='Please select both a departure and return date.';errEl.classList.add('show');return;}
+    const s=new Date(startDate);s.setHours(0,0,0,0);
+    const r=new Date(returnDate);r.setHours(0,0,0,0);
+    if(r<=s){errEl.textContent='Return date must be after departure date.';errEl.classList.add('show');return;}
+    errEl.classList.remove('show');
+    const workEnd=new Date(r);workEnd.setDate(workEnd.getDate()-1);
+    const days=countDays(s,workEnd);
+    const holList=holsInRange(s,workEnd);
+    document.getElementById('r-start').textContent=disp(s,true);
+    document.getElementById('r-end').textContent=disp(r,true);
+    document.getElementById('r-period').textContent=`${disp(s,true)} – ${disp(workEnd,true)}`;
+    const holEl=document.getElementById('wd-hols');
+    holEl.innerHTML=holList.length
+      ?`<div class="wd-hols-title">${holList.length} public holiday${holList.length>1?'s':''} excluded</div>
+        <div class="wd-hols-pills">${holList.map(({date:d,name})=>`<span class="wd-hol-pill" title="${name}">${disp(d,true)}</span>`).join('')}</div>`
+      :'<span style="color:var(--muted)">No public holidays in this period</span>';
+    const numEl=document.getElementById('r-num');
+    let cur=0;const step=Math.max(1,Math.floor(days/20));
+    const tid=setInterval(()=>{cur=Math.min(cur+step,days);numEl.textContent=cur;if(cur>=days)clearInterval(tid);},30);
+    document.getElementById('wd-result').classList.add('show');
+  };
+
+  // ── Init ─────────────────────────────────────────────────────────────────
+  getHolsForYear(new Date().getFullYear());
+  updateHolCountLabel();
+})();
+</script>
