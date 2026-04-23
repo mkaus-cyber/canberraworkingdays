@@ -1,0 +1,93 @@
+# =============================================================================
+# _headers — HTTP Security Headers
+# Site: mkaus-cyber.github.io/canberraworkingdays
+# Generated: 2026-04-23
+# Platform:  GitHub Pages / Netlify / Cloudflare Pages
+#
+# HOW TO DEPLOY
+# -------------
+# GitHub Pages:     Place this file in your repository root. Note: native
+#                   header support on github.io subdomains is limited — use
+#                   Cloudflare as a proxy (free) to guarantee delivery.
+# Netlify:          Place in repo root — works natively, no extra config.
+# Cloudflare Pages: Place in repo root — works natively.
+# Cloudflare proxy: Set these as Transform Rules > Modify Response Headers
+#                   in your Cloudflare dashboard (free tier supported).
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# Apply to all pages and assets on the site
+# -----------------------------------------------------------------------------
+/*
+
+  # --- VUL-01: Content Security Policy -----------------------------------
+  # Restricts which sources the browser is permitted to load.
+  # - default-src 'self'        Only load resources from this origin by default
+  # - script-src 'self'         Scripts from this origin only (no inline scripts,
+  #                             no eval, no third-party CDNs)
+  # - style-src 'self'          Stylesheets from this origin only
+  #   'unsafe-inline'           Permits inline <style> blocks (needed if your
+  #                             CSS is embedded in the HTML; remove if external)
+  # - img-src 'self' data:      Images from this origin + inline data: URIs
+  # - connect-src 'self'        fetch()/XHR targets restricted to this origin
+  # - font-src 'self'           Fonts from this origin only
+  # - frame-ancestors 'none'    Prevents this page being embedded in any iframe
+  #                             (supersedes X-Frame-Options in modern browsers)
+  # - object-src 'none'         Blocks <object>, <embed>, <applet> — not used,
+  #                             historically a major attack vector
+  # - base-uri 'self'           Prevents <base> tag injection changing relative URLs
+  # - form-action 'self'        Restricts where forms may submit (no forms on
+  #                             this site, so 'self' is a safe catch-all)
+  #
+  # NOTE: If you load any external scripts (e.g. analytics, CDN libraries),
+  # add their origins to script-src. Example:
+  #   script-src 'self' https://cdnjs.cloudflare.com
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
+
+  # --- VUL-02: Clickjacking protection -----------------------------------
+  # Redundant with frame-ancestors 'none' in the CSP above, but included for
+  # compatibility with older browsers that do not support CSP frame-ancestors.
+  X-Frame-Options: DENY
+
+  # --- VUL-03: MIME-type sniffing prevention -----------------------------
+  # Forces the browser to respect the declared Content-Type header and not
+  # try to guess the file type. Prevents content-injection via MIME confusion.
+  X-Content-Type-Options: nosniff
+
+  # --- VUL-04: Referrer leakage control ----------------------------------
+  # Sends only the origin (e.g. https://mkaus-cyber.github.io) — not the full
+  # path — when navigating to external sites. Balances analytics compatibility
+  # with user privacy. Full URL is sent for same-origin navigation only.
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # --- VUL-07: Browser feature/API restrictions --------------------------
+  # Explicitly disables browser APIs that this site does not use.
+  # Prevents a compromised script from silently accessing these APIs.
+  # - camera, microphone   No media capture needed
+  # - geolocation          No location services needed
+  # - payment              No payment requests needed
+  # - usb, bluetooth       No hardware access needed
+  # - interest-cohort      Opts out of Google FLoC ad targeting
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), interest-cohort=()
+
+  # --- Bonus: HTTP Strict Transport Security (HSTS) ----------------------
+  # Instructs browsers to always use HTTPS for this origin for 1 year.
+  # GitHub Pages already enforces HTTPS, but this header caches the
+  # policy in the browser so HTTP is never even attempted.
+  # max-age=31536000       Cache for 1 year (seconds)
+  # includeSubDomains      Apply to all subdomains of this origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+
+# =============================================================================
+# TESTING YOUR HEADERS
+# =============================================================================
+# After deploying, verify headers are live using any of these free tools:
+#
+#   https://securityheaders.com/?q=https://mkaus-cyber.github.io/canberraworkingdays/
+#   https://observatory.mozilla.org/analyze/mkaus-cyber.github.io
+#   curl -I https://mkaus-cyber.github.io/canberraworkingdays/
+#
+# Target grade: A or A+ on securityheaders.com
+# =============================================================================
